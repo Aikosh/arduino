@@ -64,8 +64,8 @@ void loop() {
     }
 */
   
-  //analogWrite(DAC0, sensorValue0);
-  //analogWrite(DAC1, sensorValue1);
+  analogWrite(DAC0, sensorValue0);
+  analogWrite(DAC1, sensorValue1);
 
   // シリアルモニターに結果をプリントする
   Serial.print("sensor0 = ");
@@ -74,14 +74,15 @@ void loop() {
   Serial.print(sensorValue0/factor);
   Serial.println("[V]");
 
+/*
   Serial.print("sensor1 = ");
   Serial.print(sensorValue1);
   Serial.print("\t output1 = ");
   Serial.print(sensorValue1/factor);
   Serial.println("[V]");
-
-  Serial.print("val = ");
-  Serial.println(val);
+*/
+  //Serial.print("val = ");
+  //Serial.println(val);
 
   // アナログ->デジタル変換のために2ミリ秒のウェイトが必要
   delay(1000);
