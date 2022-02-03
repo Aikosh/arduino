@@ -1,16 +1,29 @@
+//For Arduino Due 
 
-// sensorValue(アナログ値:0～4095)/voltage(0.55～2.75V) = factor
-double factor = 1226;
+// input value fctor: (アナログ値:0～4095@12bit)/voltage(3.34V_max) = factor
+//double factor = 1226.;
+double factor = 1240.;
+
+// output voltage factor: (アナログ値:0～4095@12bit)/voltage(2.75V_max) = factor2
+double factor2 = 1488.;
 
 const int analogInPin0 = A0; 
 const int analogInPin1 = A5; 
 
-double sensorValue0 = 0;
-double sensorValue1 = 0;          
+double sensorValue0 = 0.;
+double sensorValue1 = 0.;          
 
 double val;
-double sensorValue0_meas1, sensorValue0_meas2;
-double sensorValue1_meas1, sensorValue1_meas2;
+
+const int np = 20000;
+double sensorValue0_meas;
+double sensorValue1_meas;
+
+double sum_Value0 = 0.;
+double sum_Value1 = 0.;
+
+double ave_Value0 = 0.;
+double ave_Value1 = 0.;
 
 
 void setup() {
@@ -20,6 +33,13 @@ void setup() {
 }
 
 void loop() {
+
+double sum_Value0 = 0.;
+double sum_Value1 = 0.;
+double ave_Value0 = 0.;
+double ave_Value1 = 0.;
+
+
   // put your main code here, to run repeatedly:
 
   val = digitalRead(analogInPin0);
@@ -37,18 +57,53 @@ void loop() {
   // アナログ出力値を変更する
   // analogWrite(analogOutPin, outputValue);
   
+
+  //double nt = 2000./np;
+  for (int i=0; i<np; i++) {
+
+    //delayMicroseconds(nt);
+    
+    sensorValue0_meas = analogRead(analogInPin0);
+    sensorValue1_meas = analogRead(analogInPin1);
+    
 /*
+    Serial.print("sensor1_meas[");
+    Serial.print(i);
+    Serial.print("]= ");
+    Serial.print(sensorValue1_meas);
+    Serial.print("\t output1_meas = ");
+    Serial.print(sensorValue1_meas/factor);
+    Serial.println("[V]");
+*/
+    sum_Value0 += sensorValue0_meas;
+    sum_Value1 += sensorValue1_meas;
 
-  //電圧測定１回目
-  sensorValue0_meas1 = analogRead(analogInPin0);
-  sensorValue1_meas1 = analogRead(analogInPin1);
-  delay(2);  
-  
-  //電圧測定２回目
-  sensorValue0_meas2 = analogRead(analogInPin0);
-  sensorValue1_meas2 = analogRead(analogInPin1);
-  delay(10); 
+    sensorValue0_meas = 0.;
+    sensorValue1_meas = 0.;
+   
+/*
+    if (sensorValue0_meas[i] == 4095.) {
+      sum_Value0 += 1;
+    } else bleak;
 
+    if (sensorValue0_meas[i] != 4095.) {
+      sum_Value0 += 0.001;
+    } else bleak;
+    
+*/
+    
+  }
+
+    
+    ave_Value0 = sum_Value0/np;
+    ave_Value1 = sum_Value1/np;
+    
+    Serial.print("average V0: ");
+    Serial.print(ave_Value0);
+    Serial.print(" , V1: ");
+    Serial.println(ave_Value1);
+
+/*
   //電圧測定結果検証A0
   if (sensorValue0_meas1 == sensorValue0_meas2) {
     sensorValue0 = sensorValue0_meas1;
@@ -64,15 +119,22 @@ void loop() {
     }
 */
   
-  analogWrite(DAC0, sensorValue0);
-  analogWrite(DAC1, sensorValue1);
+  analogWrite(DAC0, ave_Value0);
+  analogWrite(DAC1, ave_Value1);
 
   // シリアルモニターに結果をプリントする
   Serial.print("sensor0 = ");
-  Serial.print(sensorValue0);
+  Serial.print(ave_Value0);
   Serial.print("\t output0 = ");
-  Serial.print(sensorValue0/factor);
+  Serial.print(ave_Value0/factor2);
   Serial.println("[V]");
+
+  Serial.print("sensor1 = ");
+  Serial.print(ave_Value1);
+  Serial.print("\t output1 = ");
+  Serial.print(ave_Value1/factor2);
+  Serial.println("[V]");
+
 
 /*
   Serial.print("sensor1 = ");
@@ -85,6 +147,7 @@ void loop() {
   //Serial.println(val);
 
   // アナログ->デジタル変換のために2ミリ秒のウェイトが必要
-  delay(1000);
+//  delay(2);
+delay(1000);
 
 }
