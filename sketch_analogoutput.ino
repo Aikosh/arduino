@@ -22,8 +22,8 @@ double Voffset2 = 1.563; // for correction between Mega and Due
 
 double factor  =  51.; // this is 8 bit: 255(2^8-1) / 5V = 51
 
-double val1     = voltage1 * factor * Voffset1 ;
-double val2     = voltage2 * factor * Voffset2 ;
+double val1     = voltage1 * factor ;//* Voffset1 ;
+double val2     = voltage2 * factor ;//* Voffset2 ;
 
 double Vdue_th = 3.3;
 
@@ -35,10 +35,14 @@ int old_val = 0;//ひとつ前のボタンの状態
 int sts = -1;//ボタンを押したかどうかの状態を記憶
 //----------------------------------------------------------
 
+double compv1 = 0.;
+double compv2 = 0.;
+
 void setup() {
   // put your setup code here, to run once:
    Serial.begin(9600);
    pinMode(switchPin,INPUT);//ボタンは入力モード
+
 }
 
 void loop() {
@@ -58,16 +62,46 @@ void loop() {
   old_val = val;//ボタンの状態をひとつ前の状態として記憶とする
 
 
-  if(sts > 0){
-    if ((Vin1<=Vdue_th)&&(Vin2<=Vdue_th)){
-      analogWrite(outputPin1, val1);
-      analogWrite(outputPin2, val2);
+   
+ 
+  if(sts > 0){ // ボタンスイッチON
+    
+    if ((Vin1<=Vdue_th)&&(Vin2<=Vdue_th)) { //Dueの耐圧3.3V以下か判別
+
+      for (int i = 0; i < 200; i++ ){ //
+
+        if ( compv1 < voltage1) {          
+          compv1 += 0.01;
+          analogWrite(outputPin1, compv1*factor);
+
+
+          Serial.print("pin1 = ");
+          Serial.print(outputPin1);
+          Serial.print("\t compv1[");
+          Serial.print(i);
+          Serial.print("] = ");
+          Serial.print(compv1);
+          Serial.print(" analogvalue = ");
+          Serial.println(compv1*factor);
+
+
+          delay(1000);
+          
+        }  else {analogWrite(outputPin1, val1);}
+
+        if ( compv2 < voltage2) {
+          compv2 += 0.01;
+          analogWrite(outputPin2, compv2*factor);
+        }  else {analogWrite(outputPin2, val2);}
+
+        delay(1000);
+      }  
+      
     } else {analogWrite(outputPin1, 0);
-            analogWrite(outputPin2, 0);
-      }
+            analogWrite(outputPin2, 0);}
+            
   } else{analogWrite(outputPin1, 0);
-         analogWrite(outputPin2, 0);
-  }
+         analogWrite(outputPin2, 0);}
   
   Serial.print("pin1 = ");
   Serial.print(outputPin1);
@@ -85,5 +119,5 @@ void loop() {
 
   
   // アナログ->デジタル変換のために2ミリ秒のウェイトが必要
-  delay(2);
+  delay(1000);
 }
